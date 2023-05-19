@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  lamda local demo
+
+  
+Resources:
+
+  layerDatabaseConnectionNode:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub layer-databaseconnectionnodejs-${stage}
+      Description: Layer test
+      ContentUri: databaseConnection/
+      CompatibleRuntimes:
+        - nodejs18.x
+      RetentionPolicy: Delete
+    Metadata:
+      BuildMethod: nodejs18.x  
+
+  LambdaDemoFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: lambda/ 
+      Handler: lambda.lambdaHandler 
+      Runtime: nodejs18.x
+      Layers:
+        - !Ref layerDatabaseConnectionNode
+
+  ApiGatewayFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: apigateway/
+      Handler: apigateway.lambdaHandler 
+      Runtime: nodejs12.x
+      Events:
+        HelloWorld:
+          Type: Api 
+          Properties:
+            Path: /hello
+            Method: get
