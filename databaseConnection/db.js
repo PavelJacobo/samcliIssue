@@ -1,6 +1,3 @@
-exports.testlayer = async (event, context) => {
-  return {
-      statusCode: 200,
-      body: "Hello from probando cosas"
-  };
+exports.greeting = (greeting) => {
+  return `I Send You ${greeting} from Layer`;
 };

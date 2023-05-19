@@ -14,7 +14,7 @@ Resources:
       ContentUri: databaseConnection/
       CompatibleRuntimes:
         - nodejs18.x
-      RetentionPolicy: Delete
+      RetentionPolicy: Retain
     Metadata:
       BuildMethod: nodejs18.x  
 
@@ -30,9 +30,11 @@ Resources:
   ApiGatewayFunction:
     Type: AWS::Serverless::Function 
     Properties:
+      Layers:
+        - !Ref layerDatabaseConnectionNode
       CodeUri: apigateway/
       Handler: apigateway.lambdaHandler 
-      Runtime: nodejs12.x
+      Runtime: nodejs18.x
       Events:
         HelloWorld:
           Type: Api 

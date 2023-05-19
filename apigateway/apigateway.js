@@ -1,7 +1,11 @@
+const db = require("/opt/nodejs/db");
+
 exports.lambdaHandler = async (event, context) => {
     return {
         statusCode: 200,
-        body: "Hello from probando cosas"
+        body: {
+            message: db.greeting("ApiGateWay")
+        }
     };
 };
 
