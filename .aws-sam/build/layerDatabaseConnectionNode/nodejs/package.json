@@ -1,8 +1,0 @@
-{
-  "name": "db",
-  "version": "1.0.0",
-  "description": "databse dependencies",
-  "dependencies": {
-    "pg": "^8.0.3"
-  }
-}
