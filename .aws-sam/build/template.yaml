@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'lamda local demo
+
+  '
+Resources:
+  Environment:
+    Type: String
+    AllowedValues:
+    - local
+    - development
+    - production
+    Default: local
+  Mappings:
+    PathMapping:
+      local:
+        path: /my-local-base-path
+      development:
+        path: /my-development-base-path
+      production:
+        path: /my-production-base-path
+  MyApiGateWay:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: develop
+      TracingEnabled: true
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: ../../spec.yaml
+  layerDatabaseConnectionNode:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName:
+        Fn::Sub: layer-databaseconnectionnodejs-dev
+      Description: Layer test
+      ContentUri: layerDatabaseConnectionNode
+      CompatibleRuntimes:
+      - nodejs18.x
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: nodejs18.x
+      SamResourceId: layerDatabaseConnectionNode
+  LambdaDemoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: LambdaDemoFunction
+      Handler: lambda.lambdaHandler
+      Runtime: nodejs18.x
+      Layers:
+      - Ref: layerDatabaseConnectionNode
+      - Fn::Sub: arn:aws:lambda:${AWS::Region}:094274105915:layer:AWSLambdaPowertoolsTypeScript:11
+      Events:
+        Lambda:
+          Type: Api
+          Properties:
+            Path: /lambda
+            Method: get
+            RestApiId:
+              Ref: MyApiGateWay
+    Metadata:
+      SamResourceId: LambdaDemoFunction
+  ApiGatewayFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Layers:
+      - Ref: layerDatabaseConnectionNode
+      CodeUri: ApiGatewayFunction
+      Handler: apigateway.lambdaHandler
+      Runtime: nodejs18.x
+      Events:
+        GateWay:
+          Type: Api
+          Properties:
+            Path: /gateway
+            Method: get
+    Metadata:
+      SamResourceId: ApiGatewayFunction
+  HelloFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: HelloFunction
+      Handler: hello.lambdaHandler
+      Runtime: nodejs18.x
+      Layers:
+      - Ref: layerDatabaseConnectionNode
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /hello
+            Method: get
+            RestApiId:
+              Ref: MyApiGateWay
+    Metadata:
+      SamResourceId: HelloFunction
+Outputs:
+  StringValue:
+    Description: Information about the value
+    Value: hello

@@ -6,10 +6,38 @@ Description: >
   
 Resources:
 
+  Environment:
+      Type: String
+      AllowedValues:
+        - local
+        - development
+        - production
+      Default: local
+
+  Mappings:
+    PathMapping:
+      local:
+        path: '/my-local-base-path'
+      development:
+        path: '/my-development-base-path'
+      production:
+        path: '/my-production-base-path'
+
+  MyApiGateWay:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: develop
+      TracingEnabled: true
+      DefinitionBody:
+        'Fn::Transform':
+          Name: 'AWS::Include'
+          Parameters:
+            Location: spec.yaml
+
   layerDatabaseConnectionNode:
     Type: AWS::Serverless::LayerVersion
     Properties:
-      LayerName: !Sub layer-databaseconnectionnodejs-${stage}
+      LayerName: !Sub layer-databaseconnectionnodejs-dev
       Description: Layer test
       ContentUri: databaseConnection/
       CompatibleRuntimes:
@@ -26,6 +54,14 @@ Resources:
       Runtime: nodejs18.x
       Layers:
         - !Ref layerDatabaseConnectionNode
+      Events:
+        Lambda:
+          Type: Api 
+          Properties:
+            Path: /lambda
+            Method: get
+            RestApiId:
+              Ref: MyApiGateWay
 
   ApiGatewayFunction:
     Type: AWS::Serverless::Function 
@@ -36,8 +72,30 @@ Resources:
       Handler: apigateway.lambdaHandler 
       Runtime: nodejs18.x
       Events:
-        HelloWorld:
+        GateWay:
           Type: Api 
           Properties:
-            Path: /hello
+            Path: /gateway
             Method: get
+  
+  HelloFunction:
+      Type: AWS::Serverless::Function 
+      Properties:
+        CodeUri: hello/ 
+        Handler: hello.lambdaHandler 
+        Runtime: nodejs18.x
+        Layers:
+          - !Ref layerDatabaseConnectionNode
+        Events:
+          HelloWorld:
+            Type: Api 
+            Properties:
+              Path: "/hello"
+              Method: get
+              RestApiId:
+                Ref: MyApiGateWay
+
+Outputs:
+  StringValue:
+    Description: Information about the value
+    Value: "hello"
